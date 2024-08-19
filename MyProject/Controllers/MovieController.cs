@@ -13,12 +13,24 @@ namespace MyProject.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int districtId)
         {
+            // Gelen DistrictId'nin geçerliliğini kontrol et
+            var isDistrictValid = await _context.Districts
+                    .AnyAsync(d => d.Id == districtId);
+
+            if (!isDistrictValid)
+            {
+                // Eğer DistrictId geçersizse hata fırlat
+                return NotFound("Invalid District ID");
+            }
+
+            // Geçerli DistrictId'ye sahip Movie kayıtlarını getir
             var movies = await _context.Movies
-                .Include(m => m.District)
-                .Include(m => m.Category)
-                .ToListAsync();
+                    .Where(m => m.DistrictId == districtId)
+                    .Include(m => m.District)
+                    .Include(m => m.Category)
+                    .ToListAsync();
 
             return View(movies);
         }
